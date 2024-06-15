@@ -1,0 +1,20 @@
+tdengine:
+  host: "localhost"
+  port: "6030"
+  database: "stock_db"
+  url: "http://localhost:6041"
+  user: "root"
+  password: "taosdata"
+
+influxdb:
+  url: "http://localhost:8086"
+  token: "OPQi5YWTkpQGNPRFy7aCsLUyl-bzdmrFaiRuTt6_1F5L6K5i92d5Do7DN7UPy3B7Qi2oQg1QlFzdt2DAVa-MWw=="
+  org: "myorg"
+  bucket: "mybucket"
+
+tushare:
+  token: "bdb5bf0dc3df8c4fafa95b15730029d728301fc7d6ed792f32addc88"
+
+data:
+  total_year: "2"
+  end_date: "20231231"
