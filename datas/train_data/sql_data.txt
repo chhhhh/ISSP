@@ -1,0 +1,64 @@
+import "experimental"
+
+n_days = 30  // 交易日范围
+m_days = 5   // 连续上涨天数
+x_percent = 8.0  // 涨幅百分比
+
+from(bucket: "mybucket")
+  |> range(start: -10d, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "stock_daily_k" and r["_field"] == "pct_chg")
+  |> filter(fn: (r) => exists r["_value"])
+  |> group(columns: ["ts_code"])
+  |> sort(columns: ["_time"])
+  |> map(fn: (r) => ({ r with is_up: if r._value > x_percent then 1 else 0 }))
+  |> stateTracking(fn: (r) => r.is_up == 1, countColumn: "consecutive_up_days")
+  |> filter(fn: (r) => r.consecutive_up_days >= m_days)
+  |> group(columns: ["ts_code"])
+  |> distinct(column: "ts_code")
+  |> yield(name: "result")
+
+--------------------------------
+import "experimental"
+
+m_days = 18 // 连续下跌的天数
+half_year_duration = 26d // 半年的时间范围
+
+from(bucket: "mybucket")
+  |> range(start: -half_year_duration, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "stock_daily_k" and r["_field"] == "pct_chg")
+  |> group(columns: ["ts_code"])
+  |> sort(columns: ["_time"])
+  |> map(fn: (r) => ({ r with is_down: if r._value < 0 then 1 else 0 }))
+  |> stateTracking(fn: (r) => r.is_down == 1, countColumn: "consecutive_down_days")
+  |> filter(fn: (r) => r.consecutive_down_days >= m_days)
+  |> group(columns: ["ts_code"])
+  |> distinct(column: "ts_code")
+  |> yield(name: "result")
+
+----------------------------
+x_percent = 10  // 日涨幅百分比
+m_times = 3     // 出现次数
+one_year_duration = 10d // 一年的时间范围
+
+// 从存储桶中选择数据
+data = from(bucket: "mybucket")
+  |> range(start: -one_year_duration, stop: now())
+  |> filter(fn: (r) => r["_measurement"] == "stock_daily_k" and r["_field"] == "pct_chg")
+  |> group(columns: ["ts_code"])
+
+// 筛选涨幅超过 x% 的数据
+exceeding_data = data
+  |> filter(fn: (r) => r._value > x_percent)
+
+// 统计出现次数
+counted_data = exceeding_data
+  |> count(column: "_value")
+  |> filter(fn: (r) => r._value == m_times)
+  |> rename(columns: {_value: "count"})
+
+// 输出结果
+result = counted_data
+  |> keep(columns: ["ts_code", "count"])
+  |> distinct(column: "ts_code")
+
+result

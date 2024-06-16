@@ -1,3 +1,7 @@
+csv:
+  code_addr: "C:/Users/chenhao/PycharmProjects/ISSP/datas/train_data/A_stock_data/stock_list.csv"
+  stocks_dir: "C:/Users/chenhao/PycharmProjects/ISSP/datas/train_data/A_stock_data/"
+
 tdengine:
   host: "localhost"
   port: "6030"
